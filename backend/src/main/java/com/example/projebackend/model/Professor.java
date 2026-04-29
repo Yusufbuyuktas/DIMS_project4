@@ -1,5 +1,7 @@
 package com.example.projebackend.model;
 
+import com.example.projebackend.dto.RequestProfessorDTO;
+import com.example.projebackend.dto.ResponseProfessorDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
