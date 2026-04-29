@@ -1,0 +1,13 @@
+package com.example.projebackend.repository;
+
+import com.example.projebackend.model.Course;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CourseRepository extends JpaRepository<Course, Integer> { // ilk parametre işlem yapacağımız entity'yi belirtir.
+    // ikinci parametre ilgili entity'nin id'sinin (@Id) türünü belirtir.
+    // jparepository interface'i içerisinde save, findByID gibi metotlar bulunuyor.
+    // bu metotları extend ediyoruz, birer birer yazmamıza gerek yok.
+
+    boolean existsByName(String name);
+
+}
