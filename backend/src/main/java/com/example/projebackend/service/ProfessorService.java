@@ -2,6 +2,9 @@ package com.example.projebackend.service;
 
 import com.example.projebackend.dto.RequestProfessorDTO;
 import com.example.projebackend.dto.ResponseProfessorDTO;
+import com.example.projebackend.exception.ErrorMessages;
+import com.example.projebackend.exception.ResourceAlreadyExistsException;
+import com.example.projebackend.exception.ResourceNotFoundException;
 import com.example.projebackend.model.Professor;
 import com.example.projebackend.repository.ProfessorRepository;
 import org.springframework.stereotype.Service;

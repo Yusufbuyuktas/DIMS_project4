@@ -2,6 +2,10 @@ package com.example.projebackend.service;
 
 import com.example.projebackend.dto.RequestTeachesDTO;
 import com.example.projebackend.dto.ResponseTeachesDTO;
+import com.example.projebackend.exception.ErrorMessages;
+import com.example.projebackend.exception.InvalidDateRangeException;
+import com.example.projebackend.exception.ResourceAlreadyExistsException;
+import com.example.projebackend.exception.ResourceNotFoundException;
 import com.example.projebackend.model.Course;
 import com.example.projebackend.model.Professor;
 import com.example.projebackend.model.Teaches;
