@@ -30,6 +30,9 @@ public class Professor {
     @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Teaches> teaches;
 
+    @Column(name = "image_name")
+    private String imageName;
+
 
 
     // yeni kayıt oluştururken Request DTO'yu Entity'ye çeviren Constructor
@@ -43,6 +46,7 @@ public class Professor {
         dto.setId(this.id);
         dto.setName(this.name);
         dto.setDepartment(this.department);
+        dto.setImageName(this.imageName);
 
         if (this.teaches != null) {
             dto.setTeaches(this.teaches.stream().map(Teaches::viewAsTeachesDTO).toList());

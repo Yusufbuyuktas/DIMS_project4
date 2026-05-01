@@ -19,5 +19,6 @@ public class ResponseProfessorDTO {
     private String name;
     private String department;
     private List<ResponseTeachesDTO> teaches;
+    private String imageName;
 
 }

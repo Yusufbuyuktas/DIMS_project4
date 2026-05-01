@@ -20,5 +20,5 @@ public class RequestProfessorDTO {
 
     @NotBlank(message = "Department field cannot be null")
     private String department;
-
+    private String imageName;
 }
