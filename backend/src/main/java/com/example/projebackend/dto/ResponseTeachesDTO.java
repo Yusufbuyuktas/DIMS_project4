@@ -6,6 +6,7 @@ import java.time.LocalDate;
 @Data
 public class ResponseTeachesDTO {
     private Integer id;
+    private Integer courseId;
     private String professorName;
     private String courseName;
     private Integer studentCount;

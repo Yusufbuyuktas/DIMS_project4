@@ -39,6 +39,7 @@ public class Professor {
     public Professor(RequestProfessorDTO requestDTO) {
         this.name = requestDTO.getName();
         this.department = requestDTO.getDepartment();
+        this.imageName = requestDTO.getImageName();
     }
 
     public ResponseProfessorDTO viewAsProfessorDTO() { // entity'den response'a

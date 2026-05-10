@@ -33,29 +33,39 @@ public class ReportService {
         // 1. Veritabanından Profesör-Kurs eşleşmelerini çek
         List<Teaches> teachesList = teachesRepository.findAll();
 
-        // 2. Verileri Jasper'ın anlayacağı formata çevir (BURASI GÜNCELLENDİ)
-        List<ProfessorCourseDTO> reportData = teachesList.stream()
-                .map(t -> new ProfessorCourseDTO(
-                        t.getProfessor().getName(), // Artık sadece getName() kullanıyoruz
-                        t.getCourse().getName()
+        // 2. Verileri Ders Adına göre grupla ve Profesörleri virgülle birleştir
+        Map<String, String> groupedData = teachesList.stream()
+                .collect(Collectors.groupingBy(
+                        t -> t.getCourse().getName(), // Anahtar (Key): Ders Adı
+                        Collectors.mapping(
+                                t -> t.getProfessor().getName(), // Değer (Value): Profesör Adı
+                                Collectors.joining(", ") // Aynı dersi veren hocaları virgülle birleştir
+                        )
+                ));
+
+        // 3. Gruplanmış veriyi Jasper'ın anlayacağı DTO formatına çevir
+        List<ProfessorCourseDTO> reportData = groupedData.entrySet().stream()
+                .map(entry -> new ProfessorCourseDTO(
+                        entry.getValue(), // professorFullName (Birleştirilmiş Hoca İsimleri)
+                        entry.getKey()    // courseName (Ders Adı)
                 ))
                 .collect(Collectors.toList());
 
-        // 3. resources/reports/professor_courses.jrxml şablonunu oku
+        // 4. resources/reports/professor_courses.jrxml şablonunu oku
         InputStream reportStream = getClass().getResourceAsStream("/reports/professor_courses.jrxml");
         JasperReport jasperReport = JasperCompileManager.compileReport(reportStream);
 
-        // 4. Veri kaynağını oluştur
+        // 5. Veri kaynağını oluştur
         JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(reportData);
 
-        // 5. Parametreler (Opsiyonel)
+        // 6. Parametreler (Opsiyonel)
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("ReportTitle", "Profesör - Kurs Atama Raporu");
 
-        // 6. Raporu doldur
+        // 7. Raporu doldur
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
 
-        // 7. PDF'i byte array olarak dışa aktar
+        // 8. PDF'i byte array olarak dışa aktar
         return JasperExportManager.exportReportToPdf(jasperPrint);
     }
 }

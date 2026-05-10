@@ -1,28 +1,25 @@
-import { useState, useEffect } from 'react';
-import { professorService } from '../services/professorService'; // Süslü parantez ekledik çünkü 'export const' kullandık
+import { useState, useEffect, useCallback } from 'react';
+import { professorService } from '../services/professorService';
 
 const useProfessors = () => {
     const [professors, setProfessors] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchProfessors = async () => {
+    const fetchData = useCallback(async () => {
         try {
             setLoading(true);
-            // Servis zaten response.data'yı döndürdüğü için direkt sonucu alıyoruz
-            const data = await professorService.getAllProfessors();
+            const data = await professorService.getAll();
             setProfessors(data);
         } catch (error) {
-            console.error("Profesörler yüklenirken hata oluştu:", error);
+            console.error("Veri çekme hatası:", error);
         } finally {
             setLoading(false);
         }
-    };
-
-    useEffect(() => {
-        fetchProfessors();
     }, []);
 
-    return { professors, loading, refreshProfessors: fetchProfessors };
+    useEffect(() => { fetchData(); }, [fetchData]);
+
+    return { professors, loading, refresh: fetchData };
 };
 
 export default useProfessors;

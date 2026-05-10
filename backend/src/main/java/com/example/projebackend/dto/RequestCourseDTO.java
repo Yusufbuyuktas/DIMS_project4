@@ -1,5 +1,6 @@
 package com.example.projebackend.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -26,6 +27,7 @@ public class RequestCourseDTO {
     private String name;
 
     @NotNull(message = "credit field cannot be null")
+    @Min(value = 0, message = "Kredi değeri 0'dan küçük olamaz")
     private Integer credit;
 
 }

@@ -1,27 +1,19 @@
 import api from './api';
 
 export const courseService = {
-    // Tüm dersleri getirir
-    getAllCourses: async () => {
-        const response = await api.get('/course/list');
-        return response.data;
+    getAll: async () => {
+        const res = await api.get('/course/list');
+        return res.data;
     },
-
-    // ID'ye göre ders getirir
-    getCourseById: async (id) => {
-        const response = await api.get(`/course/list/${id}`);
-        return response.data;
+    save: async (data) => {
+        const res = await api.post('/course/save', data);
+        return res.data;
     },
-
-    // Yeni ders kaydeder
-    saveCourse: async (courseData) => {
-        const response = await api.post('/course/save', courseData);
-        return response.data;
+    update: async (id, data) => {
+        const res = await api.put(`/course/update/${id}`, data);
+        return res.data;
     },
-
-    // Ders günceller
-    updateCourse: async (id, courseData) => {
-        const response = await api.put(`/course/update/${id}`, courseData);
-        return response.data;
+    delete: async (id) => {
+        await api.delete(`/course/delete/${id}`);
     }
 };
