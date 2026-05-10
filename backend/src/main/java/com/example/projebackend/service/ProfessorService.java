@@ -61,6 +61,9 @@ public class ProfessorService {
         // request'den gelen bilgiler ile güncelle
         dbProfessor.setName(requestProfessorDTO.getName());
         dbProfessor.setDepartment(requestProfessorDTO.getDepartment());
+        if (requestProfessorDTO.getImageName() != null && !requestProfessorDTO.getImageName().isEmpty()) {
+            dbProfessor.setImageName(requestProfessorDTO.getImageName());
+        }
 
         Professor updatedProfessor = professorRepository.save(dbProfessor);
         System.out.println("LOG INFO: professor updated -> ID: " + updatedProfessor.getId());
