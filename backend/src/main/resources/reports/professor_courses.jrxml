@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ders_dagilim_raporu" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="be76307d-fa06-4cdd-a503-1700f79a0c15">
+	<queryString><![CDATA[]]></queryString>
+	<field name="professorFullName" class="java.lang.String"/>
+	<field name="courseName" class="java.lang.String"/>
+
+	<title>
+		<band height="65" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="250" height="20" forecolor="#555555" uuid="88e5d038-1bc0-4e08-9b87-75e14d48a0fa"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isItalic="true" pdfEncoding="Cp1254"/>
+				</textElement>
+				<text><![CDATA[DIMS - Üniversite Yönetim Sistemi]]></text>
+			</staticText>
+			<textField pattern="dd.MM.yyyy HH:mm">
+				<reportElement x="405" y="0" width="150" height="20" forecolor="#555555" uuid="559fbcc1-4de0-4c3d-b5b6-79cfb72948c2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfEncoding="Cp1254"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="30" width="555" height="30" uuid="a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="18" isBold="true" pdfEncoding="Cp1254"/>
+				</textElement>
+				<text><![CDATA[DERS DAĞILIM RAPORU]]></text>
+			</staticText>
+		</band>
+	</title>
+
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<!-- Ders Adı Başa Geldi -->
+			<staticText>
+				<reportElement x="10" y="5" width="150" height="20" uuid="dbcebb3f-b5b0-4d45-8e67-49675c91be93"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true" pdfEncoding="Cp1254"/>
+				</textElement>
+				<text><![CDATA[Ders Adı]]></text>
+			</staticText>
+			<!-- Öğretim Üyeleri Sağa Kaydı ve Alanı Genişletildi -->
+			<staticText>
+				<reportElement x="170" y="5" width="375" height="20" uuid="931bca0e-b259-4fd7-be99-f6634d4531b9"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true" pdfEncoding="Cp1254"/>
+				</textElement>
+				<text><![CDATA[Öğretim Üyeleri]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="28" width="555" height="1" uuid="2a3b4c5d-6e7f-8a9b-0c1d-2e3f4a5b6c7d"/>
+				<graphicElement>
+					<pen lineWidth="1.5" lineColor="#2C3E50"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnHeader>
+
+	<detail>
+		<band height="35" splitType="Stretch">
+			<!-- Ders Adı Verisi -->
+			<textField textAdjust="StretchHeight">
+				<reportElement x="10" y="5" width="150" height="20" uuid="77df3957-fdc1-42d0-bb81-2ed46c92b85e"/>
+				<textElement verticalAlignment="Top">
+					<font size="11" isBold="true" pdfEncoding="Cp1254"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{courseName}]]></textFieldExpression>
+			</textField>
+			<!-- Profesör Listesi (StretchHeight sayesinde alt satıra iner) -->
+			<textField textAdjust="StretchHeight">
+				<reportElement x="170" y="5" width="375" height="20" uuid="0214a111-b52f-454f-bd2c-aca6eb76c081"/>
+				<textElement verticalAlignment="Top">
+					<font size="11" pdfEncoding="Cp1254"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{professorFullName}]]></textFieldExpression>
+			</textField>
+
+			<!-- Çakışmayı Önleyen Akıllı Çizgi (FixRelativeToBottom) -->
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="32" width="555" height="1" forecolor="#E0E0E0" uuid="3b4c5d6e-7f8a-9b0c-1d2e-3f4a5b6c7d8e"/>
+				<graphicElement>
+					<pen lineWidth="1.0"/>
+				</graphicElement>
+			</line>
+		</band>
+	</detail>
+
+	<pageFooter>
+		<band height="30" splitType="Stretch">
+			<textField evaluationTime="Report">
+				<reportElement x="10" y="5" width="200" height="20" forecolor="#555555" uuid="f9831d10-a9a3-48b2-b1d3-34ea193f2c5d"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true" pdfEncoding="Cp1254"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Toplam Ders Sayısı: " + $V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="430" y="5" width="80" height="20" forecolor="#777777" uuid="a659cc10-482f-4d9f-9c02-d9f783353ef6"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfEncoding="Cp1254"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Sayfa " + $V{PAGE_NUMBER} + " /"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="510" y="5" width="35" height="20" forecolor="#777777" uuid="b562a1c2-67ab-432d-948f-9a91df8820c4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfEncoding="Cp1254"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>
