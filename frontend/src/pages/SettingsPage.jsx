@@ -18,19 +18,20 @@ const SettingsPage = () => {
                 color: "bg-emerald-50 text-emerald-600",
                 desc: "Veri mimarisinin kurulması, temel CRUD API servislerinin inşası ve sistem güvenilirliği için birim/entegrasyon testlerinin yürütülmesi."
         },
+
+        {
+            name: "Faruk Turnalı",
+            role: "Report Specialist & Backend",
+            icon: <FileText size={24} />,
+            color: "bg-rose-50 text-rose-600",
+            desc: "JasperReports entegrasyonu ile profesör-kurs eşleşmelerinin akademik PDF raporlarına dönüştürülmesi, test işlemleri."
+        },
         {
             name: "Hüseyin Yılmaz",
             role: "Image Specialist & Backend",
             icon: <Camera size={24} />,
             color: "bg-amber-50 text-amber-600",
             desc: "FileService ve FileController üzerinden profil resmi yükleme sisteminin ve sunucu dosya yönetiminin kurulması."
-        },
-        {
-            name: "Faruk Turnalı",
-            role: "Report Specialist & Backend",
-            icon: <FileText size={24} />,
-            color: "bg-rose-50 text-rose-600",
-            desc: "JasperReports entegrasyonu ile profesör-kurs eşleşmelerinin akademik PDF raporlarına dönüştürülmesi."
         },
         {
             name: "Ali Caner Sezer",
@@ -50,7 +51,7 @@ const SettingsPage = () => {
                         <Settings size={32} />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-slate-800 tracking-tight italic">Hakkımızda</h1>
+                        <h1 className="text-3xl font-black text-slate-800 tracking-tight leading-none">Hakkımızda</h1>
                         <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-1 opacity-70">SAÜ Yazılım Mühendisliği Ekibi</p>
                     </div>
                 </div>

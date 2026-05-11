@@ -139,7 +139,7 @@ const ProfessorsPage = () => {
                             <th className="px-8 py-6">Profil</th>
                             <th className="px-8 py-6">Ad Soyad</th>
                             <th className="px-8 py-6">Bölüm</th>
-                            <th className="px-8 py-6 text-right">İşlem</th>
+                            <th className="px-8 py-6 text-right">İşlemler</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">

@@ -55,7 +55,7 @@ const ProfessorCoursesModal = ({ isOpen, onClose, professor, onRemoveAssignment 
                                         <th className="px-6 py-4">Ders Adı</th>
                                         <th className="px-6 py-4">Kapasite</th>
                                         <th className="px-6 py-4">Dönem Aralığı</th>
-                                        <th className="px-6 py-4 text-right">İşlem</th> {/* 👈 YENİ SÜTUN */}
+                                        <th className="px-6 py-4 text-right">İşlem</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
@@ -77,7 +77,6 @@ const ProfessorCoursesModal = ({ isOpen, onClose, professor, onRemoveAssignment 
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 text-right">
-                                                {/* 👈 YENİ BUTON: Sadece atamayı kaldırır */}
                                                 <button
                                                     onClick={() => onRemoveAssignment(t.id)}
                                                     className="p-2.5 bg-rose-50 text-rose-400 rounded-xl hover:bg-rose-600 hover:text-white transition-all border border-rose-100/50"
@@ -96,9 +95,7 @@ const ProfessorCoursesModal = ({ isOpen, onClose, professor, onRemoveAssignment 
 
                 {/* FOOTER AYNI KALIYOR */}
                 <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100 flex justify-end">
-                    <button onClick={onClose} className="px-8 py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-100 transition-all shadow-sm">
-                        Pencereyi Kapat
-                    </button>
+
                 </div>
             </div>
         </div>

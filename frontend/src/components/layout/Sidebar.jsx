@@ -12,7 +12,7 @@ const Sidebar = () => {
   return (
     <aside className="fixed left-0 top-0 z-40 w-64 h-screen pt-20 bg-white border-r border-slate-200 transition-transform">
       <div className="h-full px-4 pb-4 overflow-y-auto custom-scrollbar">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 ml-2">Ana Menü</p>
+        <p className="text-[15px] font-bold text-slate-400 uppercase tracking-widest mb-4 ml-2">Ana Menü</p>
         <ul className="space-y-1.5 font-medium">
           {menus.map((menu) => (
             <li key={menu.path}>

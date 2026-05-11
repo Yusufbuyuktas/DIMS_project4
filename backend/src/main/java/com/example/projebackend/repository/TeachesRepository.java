@@ -20,8 +20,8 @@ public interface TeachesRepository extends JpaRepository<Teaches, Integer> {
             "t.start_date AS startDate, " +
             "t.ending_date AS endingDate " +
             "FROM teaches t " +
-            "JOIN professor p ON t.professor_id = p.id " +
-            "JOIN course c ON t.course_id = c.id",
+            "JOIN professors p ON t.professor_id = p.id " +
+            "JOIN courses c ON t.course_id = c.id",
             nativeQuery = true)
     List<TeachesProjection> getAllTeachesWithJoins();
 

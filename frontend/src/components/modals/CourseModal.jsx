@@ -41,10 +41,16 @@ const CourseModal = ({ isOpen, onClose, onRefresh, initialData, triggerToast }) 
             onRefresh();
             onClose();
         } catch (error) {
-            console.error("İşlem hatası:", error);
-            // 4. ADIM: Alert yerine hata toast'ı gösteriyoruz
-            triggerToast("İşlem sırasında bir hata oluştu!", "error");
-        } finally {
+                            console.error("İşlem hatası:", error);
+
+                            const serverMessage = error.response?.data?.message;
+
+                            if (serverMessage) {
+                                triggerToast(serverMessage, "error"); // "Bu profesör zaten sistemde mevcut."
+                            } else {
+                                triggerToast("İşlem sırasında teknik bir hata oluştu!", "error");
+                            }
+                        }finally {
             setLoading(false);
         }
     };
