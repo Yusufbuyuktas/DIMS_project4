@@ -52,6 +52,7 @@ public class Teaches {
     public ResponseTeachesDTO viewAsTeachesDTO() {
         ResponseTeachesDTO dto = new ResponseTeachesDTO();
         dto.setId(this.id);
+        dto.setCourseId(this.course.getId());
         dto.setProfessorName(this.professor.getName());
         dto.setCourseName(this.course.getName());
         dto.setStudentCount(this.studentCount);

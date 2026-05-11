@@ -2,12 +2,14 @@ package com.example.projebackend.repository;
 
 import com.example.projebackend.model.Course;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface CourseRepository extends JpaRepository<Course, Integer> { // ilk parametre işlem yapacağımız entity'yi belirtir.
-    // ikinci parametre ilgili entity'nin id'sinin (@Id) türünü belirtir.
-    // jparepository interface'i içerisinde save, findByID gibi metotlar bulunuyor.
-    // bu metotları extend ediyoruz, birer birer yazmamıza gerek yok.
+@Repository
+public interface CourseRepository extends JpaRepository<Course, Integer> {
 
-    boolean existsByName(String name);
+    //  İsim bazlı büyük/küçük harf duyarsız kontrol
+    boolean existsByNameIgnoreCase(String name);
 
+    //  Güncellemede kendisi dışındaki çakışmaları kontrol eder
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Integer id);
 }

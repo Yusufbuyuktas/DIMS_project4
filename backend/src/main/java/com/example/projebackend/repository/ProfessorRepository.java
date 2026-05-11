@@ -5,9 +5,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ProfessorRepository extends JpaRepository<Professor, Integer> { // ilk parametre işlem yapacağımız entity'yi belirtir.
-    // ikinci parametre ilgili entity'nin id'sinin (@Id) türünü belirtir.
+public interface ProfessorRepository extends JpaRepository<Professor, Integer> {
 
-    boolean existsByName(String name);
+    // Büyük/küçük harf duyarsız isim kontrolü
+    boolean existsByNameIgnoreCase(String name);
 
+    // Güncelleme yaparken kendisi hariç çakışma kontrolü
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Integer id);
 }

@@ -8,6 +8,7 @@ import com.example.projebackend.exception.ResourceNotFoundException;
 import com.example.projebackend.model.Course;
 import com.example.projebackend.repository.CourseRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // 👈 Eklendi
 
 import java.util.List;
 
@@ -20,29 +21,25 @@ public class CourseService {
         this.courseRepository = courseRepository;
     }
 
+    @Transactional
     public ResponseCourseDTO saveCourse(RequestCourseDTO requestCourseDTO) {
-        if (courseRepository.existsByName(requestCourseDTO.getName())) {
+        String trimmedName = requestCourseDTO.getName().trim();
+
+        // 🎯 Duyarsız kontrol
+        if (courseRepository.existsByNameIgnoreCase(trimmedName)) {
             throw new ResourceAlreadyExistsException(ErrorMessages.ERROR_COURSE_ALREADY_EXIST);
         }
 
         Course course = new Course(requestCourseDTO);
-        Course dbCourse = courseRepository.save(course);
+        course.setName(trimmedName); // PrePersist bunu "Baş Harf Büyük" yapacak
 
-        System.out.println("LOG INFO: course added -> ID: " + dbCourse.getId() + ", Course: " + dbCourse.getName());
+        Course dbCourse = courseRepository.save(course);
+        System.out.println("LOG INFO: course added -> ID: " + dbCourse.getId());
         return dbCourse.viewAsCourseDTO();
     }
 
-
     public List<ResponseCourseDTO> getAllCourses() {
         return courseRepository.findAll().stream().map(Course::viewAsCourseDTO).toList();
-
-        /*
-        // Lambda gösterimi (Uzun yol)
-        .map(course -> course.viewAsCourseDTO()) // akıştan gelen her bir nesne için bunu yapar map
-
-        // Method Reference gösterimi (Kısa yol)
-        .map(Course::viewAsCourseDTO)
-        */
     }
 
     public ResponseCourseDTO getCourseById(Integer id) {
@@ -51,6 +48,7 @@ public class CourseService {
                 .viewAsCourseDTO();
     }
 
+    @Transactional
     public void deleteCourseById(Integer id) {
         courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.ERROR_COURSE_NOT_FOUND));
@@ -59,13 +57,19 @@ public class CourseService {
         System.out.println("LOG INFO: course deleted -> ID: " + id);
     }
 
+    @Transactional
     public ResponseCourseDTO updateCourseById(Integer id, RequestCourseDTO requestCourseDTO) {
         Course dbCourse = courseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorMessages.ERROR_COURSE_NOT_FOUND));
 
+        String trimmedName = requestCourseDTO.getName().trim();
 
-        // request'den gelen bilgiler ile güncelle
-        dbCourse.setName(requestCourseDTO.getName());
+        // 🎯 Güncelleme çakışma kontrolü
+        if (courseRepository.existsByNameIgnoreCaseAndIdNot(trimmedName, id)) {
+            throw new ResourceAlreadyExistsException(ErrorMessages.ERROR_COURSE_ALREADY_EXIST);
+        }
+
+        dbCourse.setName(trimmedName);
         dbCourse.setCredit(requestCourseDTO.getCredit());
 
         Course updatedCourse = courseRepository.save(dbCourse);
@@ -73,5 +77,4 @@ public class CourseService {
 
         return updatedCourse.viewAsCourseDTO();
     }
-
 }

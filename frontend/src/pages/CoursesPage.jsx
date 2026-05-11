@@ -119,8 +119,8 @@ const CoursesPage = () => {
                                     </div>
                                 </td>
                                 <td className="px-8 py-5">
-                                    <span className="px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-[11px] font-black uppercase border border-indigo-100/30">
-                                        {course.credit} AKTS Kredisi
+                                    <span className="px-4 py-1.5  text-slate-400 bg-slate-50 rounded-xl text-[11px] font-black uppercase border border-indigo-100/30">
+                                        {course.credit} AKTS
                                     </span>
                                 </td>
                                 <td className="px-8 py-5 text-right">
@@ -142,7 +142,7 @@ const CoursesPage = () => {
                 onClose={() => setConfirmModal({ show: false, id: null })}
                 onConfirm={handleConfirmDelete}
                 title="Kurs Silme"
-                message="Bu kursu katalogdan silmek istediğinize emin misiniz? Bu dersin aktif atamaları varsa silme işlemi başarısız olabilir."
+                message="Bu kursu katalogdan silmek istediğinize emin misiniz?"
             />
         </div>
     );

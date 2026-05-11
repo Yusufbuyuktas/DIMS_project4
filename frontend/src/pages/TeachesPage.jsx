@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import useProfessors from '../hooks/useProfessors';
 import useCourses from '../hooks/useCourses';
 import { teachesService } from '../services/teachesService';
 import AssignmentModal from '../components/modals/AssignmentModal';
 import Toast from '../components/ui/Toast';
-import ConfirmModal from '../components/modals/ConfirmModal'; // ConfirmModal eklendi
+import ConfirmModal from '../components/modals/ConfirmModal';
 import { reportService } from '../services/reportService';
-import { FileText, Users, BookOpen, UserCheck, XCircle, CheckCircle2, ChevronRight, Search } from 'lucide-react';
+import { FileText, Users, BookOpen, UserCheck, XCircle, CheckCircle2, ChevronRight, Search, PlusCircle } from 'lucide-react';
 
 const TeachesPage = () => {
     const { professors, loading: pLoading, refresh: refreshP } = useProfessors();
@@ -14,7 +14,6 @@ const TeachesPage = () => {
     const [selectedProf, setSelectedProf] = useState(null);
     const [processing, setProcessing] = useState(false);
 
-    // --- ARAMA STATE'LERİ ---
     const [profSearch, setProfSearch] = useState('');
     const [courseSearch, setCourseSearch] = useState('');
 
@@ -22,8 +21,12 @@ const TeachesPage = () => {
     const [toastMsg, setToastMsg] = useState('');
     const [toastType, setToastType] = useState('success');
 
-    // Onay Modalı State
     const [confirmModal, setConfirmModal] = useState({ show: false, teachesId: null });
+    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+    const [pendingCourse, setPendingCourse] = useState(null);
+
+    // Seçilen hocayı veritabanından gelen en güncel veriyle eşleştiriyoruz
+    const currentProf = professors.find(p => p.id === selectedProf?.id);
 
     const triggerToast = (msg, type = 'success') => {
         setToastMsg(msg);
@@ -31,18 +34,30 @@ const TeachesPage = () => {
         setShowToast(true);
     };
 
-    const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-    const [pendingCourse, setPendingCourse] = useState(null);
+    // --- MANTIK: AKILLI SIRALAMA VE FİLTRELEME ---
+    const sortedAndFilteredCourses = useMemo(() => {
+        // Önce arama filtresini uygula
+        const filtered = courses.filter(c =>
+            c.name.toLowerCase().includes(courseSearch.toLowerCase())
+        );
 
-    const currentProf = professors.find(p => p.id === selectedProf?.id);
+        // Eğer hoca seçiliyse, atamalara göre sırala
+        if (currentProf) {
+            return [...filtered].map(course => {
+                const assignment = currentProf.teaches?.find(t => t.courseId === course.id);
+                return {
+                    ...course,
+                    isAssigned: !!assignment,
+                    teachesId: assignment?.id
+                };
+            }).sort((a, b) => b.isAssigned - a.isAssigned); // Atanmışlar (true) başa gelir
+        }
 
-    // --- FİLTRELEME VE SIRALAMA LOGIC ---
+        return filtered.sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+    }, [courses, courseSearch, currentProf]);
+
     const filteredProfessors = [...professors]
         .filter(p => p.name.toLowerCase().includes(profSearch.toLowerCase()))
-        .sort((a, b) => a.name.localeCompare(b.name, 'tr'));
-
-    const filteredCourses = [...courses]
-        .filter(c => c.name.toLowerCase().includes(courseSearch.toLowerCase()))
         .sort((a, b) => a.name.localeCompare(b.name, 'tr'));
 
     const handleDownloadReport = async () => {
@@ -58,12 +73,16 @@ const TeachesPage = () => {
     };
 
     const handleToggleAssign = async (course) => {
-        if (!currentProf) return;
-        const existingAssignment = currentProf.teaches?.find(t => t.courseId === course.id);
+        if (!currentProf) {
+            triggerToast("Lütfen önce bir profesör seçin.", "error");
+            return;
+        }
 
-        if (existingAssignment) {
-            setConfirmModal({ show: true, teachesId: existingAssignment.id });
+        if (course.isAssigned) {
+            // Atama zaten varsa onay modalını aç
+            setConfirmModal({ show: true, teachesId: course.teachesId });
         } else {
+            // Atama yoksa atama modalını aç
             setPendingCourse(course);
             setIsAssignModalOpen(true);
         }
@@ -75,10 +94,10 @@ const TeachesPage = () => {
         setProcessing(true);
         try {
             await teachesService.delete(id);
-            await refreshP();
-            triggerToast("Atama başarıyla kaldırıldı.", "success");
+            await refreshP(); // Profesör verilerini (teaches listesini) yenile
+            triggerToast("Ders ataması profesörden kaldırıldı.", "success");
         } catch (error) {
-            triggerToast("Atama kaldırılırken teknik bir sorun oluştu.", "error");
+            triggerToast("İşlem sırasında bir hata oluştu.", "error");
         } finally {
             setProcessing(false);
         }
@@ -88,11 +107,15 @@ const TeachesPage = () => {
         setIsAssignModalOpen(false);
         setProcessing(true);
         try {
-            await teachesService.assign({ professorId: currentProf.id, courseId: pendingCourse.id, ...details });
+            await teachesService.assign({
+                professorId: currentProf.id,
+                courseId: pendingCourse.id,
+                ...details
+            });
             await refreshP();
-            triggerToast("Kurs ataması başarıyla tamamlandı.", "success");
+            triggerToast("Ders başarıyla atandı.", "success");
         } catch (error) {
-            triggerToast("Bu ders zaten profesöre tanımlanmış!", "error");
+            triggerToast("Atama yapılırken hata oluştu!", "error");
         } finally {
             setProcessing(false);
             setPendingCourse(null);
@@ -106,14 +129,13 @@ const TeachesPage = () => {
                 <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200/60 space-y-4">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><Users size={24} /></div>
-                        <h3 className="text-lg font-black text-slate-800">1. Profesör Seçimi</h3>
+                        <h3 className="text-lg font-black text-slate-800 tracking-tight">1. Profesör Seçimi</h3>
                     </div>
-                    {/* PROFESÖR ARAMA */}
                     <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                         <input
-                            type="text" placeholder="İsim ara..." value={profSearch} onChange={(e) => setProfSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold focus:bg-white transition-all outline-none"
+                            type="text" placeholder="İsim veya bölüm ara..." value={profSearch} onChange={(e) => setProfSearch(e.target.value)}
+                            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold focus:bg-white focus:ring-4 focus:ring-indigo-600/5 transition-all outline-none"
                         />
                     </div>
                 </div>
@@ -121,13 +143,17 @@ const TeachesPage = () => {
                 <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                     {filteredProfessors.map(prof => (
                         <div key={prof.id} onClick={() => setSelectedProf(prof)}
-                            className={`p-4 rounded-2xl cursor-pointer transition-all flex items-center justify-between border-2 group ${currentProf?.id === prof.id ? 'border-indigo-600 bg-white shadow-xl shadow-indigo-100/50 translate-x-2' : 'border-transparent bg-white hover:bg-slate-50'}`}
+                            className={`p-4 rounded-[1.5rem] cursor-pointer transition-all flex items-center justify-between border-2 group ${currentProf?.id === prof.id ? 'border-indigo-600 bg-white shadow-xl shadow-indigo-100/50 translate-x-2' : 'border-transparent bg-white hover:bg-slate-50'}`}
                         >
                             <div className="flex items-center gap-4">
-                                <img src={`http://localhost:8080/api/files/${prof.imageName}`} className="w-12 h-12 rounded-xl object-cover shadow-sm" onError={(e) => e.target.src = `https://ui-avatars.com/api/?background=6366f1&color=fff&name=${prof.name}`} />
+                                <img
+                                    src={`http://localhost:8080/api/files/${prof.imageName}`}
+                                    className={`w-12 h-12 rounded-xl object-cover shadow-sm transition-transform ${currentProf?.id === prof.id ? 'scale-110' : ''}`}
+                                    onError={(e) => e.target.src = `https://ui-avatars.com/api/?background=6366f1&color=fff&name=${prof.name}`}
+                                />
                                 <div>
-                                    <p className={`font-bold text-sm ${currentProf?.id === prof.id ? 'text-indigo-600' : 'text-slate-700'}`}>{prof.name}</p>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">{prof.department}</p>
+                                    <p className={`font-black text-sm ${currentProf?.id === prof.id ? 'text-indigo-600' : 'text-slate-700'}`}>{prof.name}</p>
+                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{prof.department}</p>
                                 </div>
                             </div>
                             <ChevronRight size={18} className={`${currentProf?.id === prof.id ? 'text-indigo-600' : 'text-slate-200'}`} />
@@ -142,11 +168,10 @@ const TeachesPage = () => {
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><BookOpen size={24} /></div>
                         <div>
-                            <h3 className="text-lg font-black text-slate-800">2. Atama Merkezi</h3>
-                            {currentProf && <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-widest">{currentProf.name}</p>}
+                            <h3 className="text-lg font-black text-slate-800 tracking-tight">2. Atama İşlemleri</h3>
+                            {currentProf && <p className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.2em] mt-0.5 animate-pulse">{currentProf.name}</p>}
                         </div>
                     </div>
-                    {/* KURS ARAMA */}
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         <div className="relative flex-1 md:w-48">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
@@ -155,45 +180,64 @@ const TeachesPage = () => {
                                 className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold focus:bg-white transition-all outline-none"
                             />
                         </div>
-                        <button onClick={handleDownloadReport} disabled={processing} className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[10px] uppercase border border-emerald-100 disabled:opacity-50">
+                        <button onClick={handleDownloadReport} disabled={processing} className="flex items-center gap-2 px-5 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[10px] uppercase border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all">
                             <FileText size={14} /> Rapor
                         </button>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                    {filteredCourses.map(course => {
-                        const isAssigned = currentProf?.teaches?.some(t => t.courseId === course.id);
-                        return (
-                            <div key={course.id} className={`p-6 rounded-[2rem] border-2 transition-all flex flex-col justify-between group ${isAssigned ? 'border-emerald-100 bg-emerald-50/30' : 'border-white bg-white hover:border-indigo-100'}`}>
-                                <div>
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase border ${isAssigned ? 'bg-white border-emerald-200 text-emerald-600' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
-                                            {course.credit} AKTS
-                                        </span>
-                                        {isAssigned && <CheckCircle2 size={16} className="text-emerald-500" />}
-                                    </div>
-                                    <h4 className="font-bold text-slate-700 text-base leading-snug group-hover:text-indigo-600 transition-colors">{course.name}</h4>
+                    {sortedAndFilteredCourses.map(course => (
+                        <div key={course.id}
+                            className={`p-6 rounded-[2.5rem] border-2 transition-all flex flex-col justify-between group ${course.isAssigned ? 'border-emerald-200 bg-emerald-50/20 shadow-lg shadow-emerald-50' : 'border-white bg-white hover:border-indigo-100'}`}
+                        >
+                            <div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <span className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase border ${course.isAssigned ? 'bg-white border-emerald-200 text-emerald-600' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                        {course.credit} AKTS
+                                    </span>
+                                    {course.isAssigned && (
+                                        <div className="flex items-center gap-1.5 bg-emerald-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest animate-in zoom-in">
+                                            <CheckCircle2 size={12} /> Atandı
+                                        </div>
+                                    )}
                                 </div>
-                                <button disabled={!currentProf || processing} onClick={() => handleToggleAssign(course)}
-                                    className={`w-full mt-6 py-3.5 rounded-xl font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${!currentProf ? 'bg-slate-50 text-slate-300 cursor-not-allowed' : isAssigned ? 'bg-white border border-rose-100 text-rose-500 hover:bg-rose-500 hover:text-white' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'}`}
-                                >
-                                    {isAssigned ? <><XCircle size={14} /> Kaldır</> : <><UserCheck size={14} /> Atama Yap</>}
-                                </button>
+                                <h4 className={`font-black text-base leading-tight transition-colors ${course.isAssigned ? 'text-emerald-700' : 'text-slate-700 group-hover:text-indigo-600'}`}>
+                                    {course.name}
+                                </h4>
                             </div>
-                        );
-                    })}
+
+                            <button
+                                disabled={!currentProf || processing}
+                                onClick={() => handleToggleAssign(course)}
+                                className={`w-full mt-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95 ${
+                                    !currentProf
+                                    ? 'bg-slate-50 text-slate-300 cursor-not-allowed'
+                                    : course.isAssigned
+                                        ? 'bg-rose-50 text-rose-500 border border-rose-100 hover:bg-rose-500 hover:text-white'
+                                        : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-100'
+                                }`}
+                            >
+                                {course.isAssigned ? (
+                                    <><XCircle size={14} /> Atamayı Kaldır</>
+                                ) : (
+                                    <><PlusCircle size={14} /> Atama Yap</>
+                                )}
+                            </button>
+                        </div>
+                    ))}
                 </div>
             </div>
 
             <AssignmentModal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} onConfirm={confirmAssignment} courseName={pendingCourse?.name} />
             <Toast show={showToast} message={toastMsg} type={toastType} onClose={() => setShowToast(false)} />
+
             <ConfirmModal
                 isOpen={confirmModal.show}
                 onClose={() => setConfirmModal({ show: false, teachesId: null })}
                 onConfirm={handleConfirmDeleteAssignment}
                 title="Atamayı Kaldır"
-                message="Bu ders atamasını profesörden kaldırmak istediğinize emin misiniz? Ders ana katalogda kalmaya devam edecektir."
+                message="Bu dersi profesörden geri almak istediğinize emin misiniz? Bu işlem ders programını güncelleyecektir."
             />
         </div>
     );

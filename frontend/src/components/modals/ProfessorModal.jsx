@@ -1,54 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import { professorService } from '../../services/professorService';
-// Profesyonel ikonlar
 import { X, Camera, User, BadgeCheck, Loader2 } from 'lucide-react';
 
-const ProfessorModal = ({ isOpen, onClose, onRefresh, initialData, triggerToast }) => { // 👈 triggerToast prop'u eklendi
+const ProfessorModal = ({ isOpen, onClose, onRefresh, initialData, triggerToast }) => {
     const [name, setName] = useState('');
     const [department, setDepartment] = useState('');
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [isImageRemoved, setIsImageRemoved] = useState(false);
 
+    // 1. MODAL HER AÇILDIĞINDA VEYA KAPANDIĞINDA STATE'LERİ SIFIRLA
     useEffect(() => {
         if (initialData && isOpen) {
             setName(initialData.name);
             setDepartment(initialData.department);
             setFile(null);
             setPreview(`http://localhost:8080/api/files/${initialData.imageName}`);
+            setIsImageRemoved(false); // 👈 Düzenleme modunda kilitleri aç
         } else if (!isOpen) {
             setName('');
             setDepartment('');
             setFile(null);
             setPreview(null);
+            setIsImageRemoved(false); // 👈 Modal kapandığında state'i temizle
         }
     }, [initialData, isOpen]);
 
     if (!isOpen) return null;
+
+    const handleRemoveImage = () => {
+        setFile(null);
+        setPreview(null);
+        setIsImageRemoved(true); // "Kaydet"e basınca default-avatar gitmesini işaretle
+    };
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
         if (selectedFile) {
             setFile(selectedFile);
             setPreview(URL.createObjectURL(selectedFile));
+            setIsImageRemoved(false); // 👈 KRİTİK: Yeni dosya seçilirse "silindi" durumunu iptal et
         }
     };
 
-    // --- TEK VE TEMİZ SUBMIT FONKSİYONU ---
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
+            // Varsayılan olarak mevcut resmi koru
             let finalImageName = initialData?.imageName || "default-avatar.png";
 
-            // 1. Yeni dosya seçildiyse yükle
+            // 🎯 MANTIK SIRALAMASI GÜNCELLENDİ (Conflict Çözümü)
             if (file) {
+                // Öncelik 1: Eğer kullanıcı yeni bir dosya seçtiyse her zaman yükleme yap
                 finalImageName = await professorService.uploadImage(file);
+            } else if (isImageRemoved) {
+                // Öncelik 2: Dosya seçilmemişse ama "Çarpı"ya basılmışsa default'a çek
+                finalImageName = "default-avatar.png";
             }
 
             const payload = { name, department, imageName: finalImageName };
 
-            // 2. Güncelleme mi Kayıt mı?
             if (initialData?.id) {
                 await professorService.update(initialData.id, payload);
                 triggerToast("Profesör bilgileri başarıyla güncellendi.", "success");
@@ -61,7 +74,12 @@ const ProfessorModal = ({ isOpen, onClose, onRefresh, initialData, triggerToast 
             onClose();
         } catch (error) {
             console.error("İşlem hatası:", error);
-            triggerToast("İşlem sırasında bir hata oluştu!", "error");
+            const serverMessage = error.response?.data?.message;
+            if (serverMessage) {
+                triggerToast(serverMessage, "error");
+            } else {
+                triggerToast("İşlem sırasında bir hata oluştu!", "error");
+            }
         } finally {
             setLoading(false);
         }
@@ -86,10 +104,7 @@ const ProfessorModal = ({ isOpen, onClose, onRefresh, initialData, triggerToast 
                             </p>
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
-                    >
+                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all">
                         <X size={20} />
                     </button>
                 </div>
@@ -103,22 +118,33 @@ const ProfessorModal = ({ isOpen, onClose, onRefresh, initialData, triggerToast 
                                     <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="flex flex-col items-center text-slate-300">
-                                        <Camera size={32} strokeWidth={1.5} />
-                                        <span className="text-[9px] font-black uppercase mt-1">Fotoğraf</span>
+                                        <User size={40} strokeWidth={1} />
+                                        <span className="text-[9px] font-black uppercase mt-1">Fotoğraf Yok</span>
                                     </div>
                                 )}
                             </div>
-                            <label className="absolute -bottom-2 -right-2 bg-indigo-600 p-2.5 rounded-2xl text-white cursor-pointer hover:bg-indigo-700 transition-all shadow-xl border-4 border-white active:scale-90">
+
+                            {preview && (
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveImage}
+                                    className="absolute -top-2 -right-2 bg-rose-500 text-white p-1.5 rounded-xl shadow-lg border-2 border-white hover:bg-rose-600 transition-all active:scale-90 z-10"
+                                    title="Resmi Kaldır"
+                                >
+                                    <X size={14} strokeWidth={3} />
+                                </button>
+                            )}
+
+                            <label className="absolute -bottom-2 -left-2 bg-indigo-600 p-2.5 rounded-2xl text-white cursor-pointer hover:bg-indigo-700 transition-all shadow-xl border-4 border-white active:scale-90">
                                 <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
                                 <Camera size={16} />
                             </label>
                         </div>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter mt-6">
-                            Kare format önerilir (PNG, JPG)
+                            PNG, JPG veya JPEG
                         </p>
                     </div>
 
-                    {/* INPUT ALANLARI */}
                     <div className="space-y-5">
                         <div className="group">
                             <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.15em] mb-2 ml-1 transition-colors group-focus-within:text-indigo-600">
@@ -149,7 +175,6 @@ const ProfessorModal = ({ isOpen, onClose, onRefresh, initialData, triggerToast 
                         </div>
                     </div>
 
-                    {/* AKSİYON BUTONLARI */}
                     <div className="flex gap-4 pt-4">
                         <button
                             type="button"
@@ -163,14 +188,7 @@ const ProfessorModal = ({ isOpen, onClose, onRefresh, initialData, triggerToast 
                             disabled={loading}
                             className="flex-[1.5] py-4 rounded-2xl bg-indigo-600 text-white font-black text-xs uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95"
                         >
-                            {loading ? (
-                                <Loader2 className="animate-spin" size={18} />
-                            ) : (
-                                <>
-                                    <BadgeCheck size={18} />
-                                    {initialData ? "Değişiklikleri Kaydet" : "Kaydı Tamamla"}
-                                </>
-                            )}
+                            {loading ? <Loader2 className="animate-spin" size={18} /> : <><BadgeCheck size={18} /> {initialData ? "Değişiklikleri Kaydet" : "Kaydı Tamamla"}</>}
                         </button>
                     </div>
                 </form>

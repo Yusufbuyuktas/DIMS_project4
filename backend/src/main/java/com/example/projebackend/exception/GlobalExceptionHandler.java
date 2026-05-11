@@ -1,6 +1,7 @@
 package com.example.projebackend.exception;
 
 import net.sf.jasperreports.engine.JRException;
+import org.springframework.dao.DataIntegrityViolationException; // 👈 Bu importu ekle
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -12,48 +13,53 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1. Senin JasperReports Hatanı Yakalar
+    // 🎯 VERİTABANI UNIQUE CONSTRAINT HATASINI YAKALAR
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Kayıt Çakışması");
+        response.put("message", "Bu isimde bir profesör sistemde zaten mevcut.");
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT); // 409
+    }
+
+    // --- Mevcut Diğer Handler'ların (Jasper, ResourceNotFound vb.) aynen kalsın ---
     @ExceptionHandler(JRException.class)
     public ResponseEntity<Map<String, String>> handleJasperException(JRException ex) {
         Map<String, String> response = new HashMap<>();
         response.put("error", "Rapor oluşturulurken bir hata meydana geldi.");
         response.put("message", ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR); // 500
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // 2. Bulunamadı Hatalarını Yakalar (ResourceNotFoundException)
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
         Map<String, String> response = new HashMap<>();
         response.put("error", "Kayıt Bulunamadı");
         response.put("message", ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND); // 404
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
-    // 3. Zaten Var Hatalarını Yakalar (ResourceAlreadyExistsException)
     @ExceptionHandler(ResourceAlreadyExistsException.class)
     public ResponseEntity<Map<String, String>> handleResourceAlreadyExistsException(ResourceAlreadyExistsException ex) {
         Map<String, String> response = new HashMap<>();
         response.put("error", "Çakışma / Zaten Mevcut");
         response.put("message", ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.CONFLICT); // 409
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
-    // 4. Diğer Tüm Genel Hataları Yakalar
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
         Map<String, String> response = new HashMap<>();
         response.put("error", "Sunucu kaynaklı genel bir hata oluştu.");
         response.put("message", ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR); // 500
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // Tarih Aralığı Hatalarını Yakalar (InvalidDateRangeException)
     @ExceptionHandler(InvalidDateRangeException.class)
     public ResponseEntity<Map<String, String>> handleInvalidDateRangeException(InvalidDateRangeException ex) {
         Map<String, String> response = new HashMap<>();
         response.put("error", "Geçersiz Tarih Aralığı");
         response.put("message", ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // 400
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }
