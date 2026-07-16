@@ -112,4 +112,4 @@ Ahmet Hilmi (Teaches/Ders Atama Altyapısı, Native SQL Temelleri)
 
 Hüseyin (İlk Sürüm Dosya Yükleme Sistem Taslakları)
 
-Jasper Faruk (ReportController, PDF Raporlama Altyapısı ve Servisleri)
+Faruk  (Jasper ReportController, PDF Raporlama Altyapısı ve Servisleri)
