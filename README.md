@@ -1,5 +1,7 @@
 #  DIMS_project4 | Akademik Portal & Ders Yönetim Sistemi
 
+<img width="1600" height="767" alt="DersAtamaMerkezi" src="https://github.com/user-attachments/assets/93c94262-6440-4680-8cc8-5c60e41ca3eb" />
+
 DIMS_project4, bir üniversite fakültesindeki profesörleri, dersleri ve bu iki unsur arasındaki akademik atama ilişkilerini (`teaches`) yönetmek amacıyla uçtan uca tasarlanmış, **4 katmanlı (4-Tier) bir Web Otomasyon Sistemidir**. 
 
 Proje; esneklik, genişletilebilirlik, performans ve temiz kod (Clean Code) prensipleri en üst düzeyde tutularak geliştirilmiştir.
